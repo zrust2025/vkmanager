@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Wrench, ClipboardList, Package,
   Users, FolderKanban, FileText, Car, ShoppingCart, Calendar,
-  MessageSquare, Settings, LogOut, ChevronRight
+  MessageSquare, Settings, LogOut, ChevronRight, Clock
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +25,8 @@ const navItems = [
   { href: '/dashboard/calendar', label: 'Kalendář', icon: Calendar },
   { href: '/dashboard/chat', label: 'Chat', icon: MessageSquare },
   { href: '/dashboard/settings', label: 'Nastavení', icon: Settings },
+  { href: '/dashboard/attendance', label: 'Docházka', icon: Clock },
+
 ]
 
 export default function Sidebar({ userEmail }: { userEmail: string }) {

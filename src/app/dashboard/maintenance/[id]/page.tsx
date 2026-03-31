@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { ArrowLeft, Edit, Building2, User, Calendar, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Edit } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import CommentSection from './CommentSection'
 
 const statusColors: Record<string, string> = {
   novy: 'bg-blue-100 text-blue-700',
@@ -116,10 +117,12 @@ export default async function MaintenanceRequestDetailPage({
               <span className="text-sm text-gray-500">Typ</span>
               <span className="text-sm font-medium text-gray-900">{typeLabels[request.type] ?? request.type}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-gray-500">Kategorie</span>
-              <span className="text-sm font-medium text-gray-900">{request.category ?? '—'}</span>
-            </div>
+            {request.category && (
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Kategorie</span>
+                <span className="text-sm font-medium text-gray-900">{request.category}</span>
+              </div>
+            )}
             {request.due_date && (
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Termín</span>
@@ -144,12 +147,6 @@ export default async function MaintenanceRequestDetailPage({
                 </span>
               </div>
             )}
-            {request.estimated_hours && (
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-500">Odh. hodiny</span>
-                <span className="text-sm font-medium text-gray-900">{request.estimated_hours} hod</span>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -162,18 +159,6 @@ export default async function MaintenanceRequestDetailPage({
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Budova</span>
                 <span className="text-sm font-medium text-gray-900">{(request.buildings as any).name}</span>
-              </div>
-            )}
-            {request.floors && (
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-500">Podlaží</span>
-                <span className="text-sm font-medium text-gray-900">{(request.floors as any).name}</span>
-              </div>
-            )}
-            {request.units && (
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-500">Jednotka</span>
-                <span className="text-sm font-medium text-gray-900">{(request.units as any).name}</span>
               </div>
             )}
             {request.tenants && (
@@ -250,37 +235,11 @@ export default async function MaintenanceRequestDetailPage({
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-500">Komentáře ({comments?.length ?? 0})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {!comments || comments.length === 0 ? (
-            <p className="text-sm text-gray-400 py-2">Zatím žádné komentáře</p>
-          ) : (
-            <div className="space-y-3">
-              {comments.map(comment => (
-                <div key={comment.id} className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-medium text-gray-600">
-                      {comment.author_name?.charAt(0).toUpperCase() ?? '?'}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-900">{comment.author_name}</span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(comment.created_at).toLocaleDateString('cs-CZ')}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 mt-0.5">{comment.content}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <CommentSection
+        requestId={id}
+        initialComments={comments ?? []}
+        userEmail={user.email ?? ''}
+      />
     </div>
   )
 }
