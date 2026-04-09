@@ -4,11 +4,17 @@ import { ArrowLeft, Edit } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import CommentSection from './CommentSection'
+import WorkflowActions from './WorkflowActions'
 
 const statusColors: Record<string, string> = {
   novy: 'bg-blue-100 text-blue-700',
   prirazen: 'bg-purple-100 text-purple-700',
+  k_posouzeni: 'bg-indigo-100 text-indigo-700',
   v_reseni: 'bg-amber-100 text-amber-700',
+  posouzeno: 'bg-teal-100 text-teal-700',
+  poptavka: 'bg-orange-100 text-orange-700',
+  nabidka: 'bg-yellow-100 text-yellow-700',
+  schvaleno: 'bg-green-100 text-green-700',
   ceka_na_material: 'bg-orange-100 text-orange-700',
   ceka_na_schvaleni: 'bg-yellow-100 text-yellow-700',
   dokoncen: 'bg-green-100 text-green-700',
@@ -18,7 +24,12 @@ const statusColors: Record<string, string> = {
 const statusLabels: Record<string, string> = {
   novy: 'Nový',
   prirazen: 'Přiřazen',
+  k_posouzeni: 'K posouzení',
   v_reseni: 'V řešení',
+  posouzeno: 'Posouzeno',
+  poptavka: 'Poptávka',
+  nabidka: 'Nabídka',
+  schvaleno: 'Schváleno',
   ceka_na_material: 'Čeká na materiál',
   ceka_na_schvaleni: 'Čeká na schválení',
   dokoncen: 'Dokončen',
@@ -75,6 +86,17 @@ export default async function MaintenanceRequestDetailPage({
     .from('work_orders')
     .select('id, order_number, work_description, status, total_cost')
     .eq('maintenance_request_id', id)
+
+  const { data: assessments } = await supabase
+    .from('maintenance_assessments')
+    .select('*')
+    .eq('request_id', id)
+    .order('created_at', { ascending: false })
+
+  const { data: inquiries } = await supabase
+    .from('inquiries_extended')
+    .select('id, title, status, created_at')
+    .eq('request_id', id)
 
   return (
     <div className="p-6 space-y-6 max-w-4xl">
@@ -147,6 +169,12 @@ export default async function MaintenanceRequestDetailPage({
                 </span>
               </div>
             )}
+            {request.estimated_hours && (
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Odh. hodiny</span>
+                <span className="text-sm font-medium text-gray-900">{request.estimated_hours} hod</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -159,6 +187,18 @@ export default async function MaintenanceRequestDetailPage({
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Budova</span>
                 <span className="text-sm font-medium text-gray-900">{(request.buildings as any).name}</span>
+              </div>
+            )}
+            {request.floors && (
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Podlaží</span>
+                <span className="text-sm font-medium text-gray-900">{(request.floors as any).name}</span>
+              </div>
+            )}
+            {request.units && (
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Jednotka</span>
+                <span className="text-sm font-medium text-gray-900">{(request.units as any).name}</span>
               </div>
             )}
             {request.tenants && (
@@ -207,6 +247,42 @@ export default async function MaintenanceRequestDetailPage({
         </Card>
       )}
 
+      {assessments && assessments.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Posouzení</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {assessments.map(a => (
+              <div key={a.id} className="space-y-2 pb-3 border-b border-gray-100 last:border-0">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-400">{new Date(a.created_at).toLocaleDateString('cs-CZ')}</span>
+                  {a.result_type && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 font-medium">
+                      {a.result_type === 'interni' ? 'Interní zakázka' : a.result_type === 'zakaznicka' ? 'Zákaznická objednávka' : 'Poptávka'}
+                    </span>
+                  )}
+                </div>
+                {a.recommended_action && (
+                  <p className="text-sm text-gray-700">{a.recommended_action}</p>
+                )}
+                <div className="flex gap-4">
+                  {a.estimated_cost && (
+                    <span className="text-xs text-gray-500">Cena: {Number(a.estimated_cost).toLocaleString('cs-CZ')} Kč</span>
+                  )}
+                  {a.estimated_hours && (
+                    <span className="text-xs text-gray-500">Čas: {a.estimated_hours} hod</span>
+                  )}
+                </div>
+                {a.result_notes && (
+                  <p className="text-xs text-gray-400">{a.result_notes}</p>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {workOrders && workOrders.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
@@ -234,6 +310,32 @@ export default async function MaintenanceRequestDetailPage({
           </CardContent>
         </Card>
       )}
+
+      {inquiries && inquiries.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-gray-500">Poptávky</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {inquiries.map(inq => (
+                <Link key={inq.id} href={`/dashboard/inquiries/${inq.id}`}>
+                  <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 rounded px-1 transition-colors">
+                    <span className="text-sm text-gray-900">{inq.title}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">{inq.status}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <WorkflowActions
+        requestId={id}
+        currentStatus={request.status}
+        userEmail={user.email ?? ''}
+      />
 
       <CommentSection
         requestId={id}

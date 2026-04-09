@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Building2, Wrench, ClipboardList, Package,
   Users, FolderKanban, FileText, Car, ShoppingCart, Calendar,
-  MessageSquare, Settings, LogOut, ChevronRight, Clock
+  MessageSquare, Settings, LogOut, ChevronRight, Clock, MapPin, Truck, Cog, FileSearch,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -26,6 +26,12 @@ const navItems = [
   { href: '/dashboard/chat', label: 'Chat', icon: MessageSquare },
   { href: '/dashboard/settings', label: 'Nastavení', icon: Settings },
   { href: '/dashboard/attendance', label: 'Docházka', icon: Clock },
+  { href: '/dashboard/sites', label: 'Areály', icon: MapPin },
+  { href: '/dashboard/suppliers', label: 'Dodavatelé', icon: Truck },
+  { href: '/dashboard/equipment', label: 'Zařízení', icon: Cog },
+  { href: '/dashboard/inquiries', label: 'Poptávky', icon: FileSearch },
+  { href: '/dashboard/quotes', label: 'Nabídky', icon: FileText },
+
 
 ]
 
